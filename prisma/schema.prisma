@@ -1,0 +1,46 @@
+// ----------------------------
+// Prisma Schema
+// ----------------------------
+
+datasource db {
+  provider = "postgresql" // or "mysql" / "sqlite" depending on your setup
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------
+// Models
+// ----------------------------
+
+model User {
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  password      String
+  provider      AuthProvider   @default(EMAIL)
+  isVerified    Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+}
+
+// ----------------------------
+// Enums
+// ----------------------------
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+}

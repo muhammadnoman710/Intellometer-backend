@@ -1,0 +1,128 @@
+{
+  "info": {
+    "name": "Intellometer Backend",
+    "_postman_id": "12345678-abcd-efgh-ijkl-1234567890ab",
+    "description": "Postman collection for Intellometer backend Auth APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"S3cureP@ssw0rd\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/auth/signup",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/auth/verify-otp",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["auth", "verify-otp"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"S3cureP@ssw0rd\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/auth/forgot-password",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["auth", "forgot-password"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewP@ssw0rd\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/auth/reset-password",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["auth", "reset-password"]
+            }
+          }
+        },
+        {
+          "name": "Google OAuth (Stub)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:5000/auth/google",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["auth", "google"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
