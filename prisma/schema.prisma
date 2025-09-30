@@ -18,7 +18,7 @@ generator client {
 model User {
   id            Int            @id @default(autoincrement())
   email         String         @unique
-  password      String
+  password      String?        // ✅ nullable for Google users
   provider      AuthProvider   @default(EMAIL)
   isVerified    Boolean        @default(false)
   createdAt     DateTime       @default(now())
