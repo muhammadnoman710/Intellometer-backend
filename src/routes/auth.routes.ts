@@ -71,12 +71,6 @@ router.get(
       return res.redirect("/auth/login?error=no_user");
     }
 
-    // Forgot password
-    router.post("/forgot-password", forgotPassword);
-
-    // Reset password
-    router.post("/reset-password", resetPassword);
-
 
     // Generate JWT
     const token = generateJwt(user);
@@ -88,5 +82,11 @@ router.get(
     // return res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
   }
 );
+
+    // Forgot password
+    router.post("/forgot-password", forgotPassword);
+
+    // Reset password
+    router.post("/reset-password", resetPassword);
 
 export default router;
