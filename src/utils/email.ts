@@ -1,25 +1,23 @@
 import nodemailer from "nodemailer";
 
 export const sendResetEmail = async (to: string, token: string) => {
-  const testAccount = await nodemailer.createTestAccount();
-
+  // ✅ Use Gmail SMTP instead of Ethereal
   const transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
+    service: "gmail",
     auth: {
-      user: testAccount.user,
-      pass: testAccount.pass,
+      user: process.env.EMAIL_USER, // your Gmail address
+      pass: process.env.EMAIL_PASS, // your App Password (not your normal password!)
     },
   });
 
   const resetLink = `http://localhost:5000/auth/reset-password/${token}`;
 
   const info = await transporter.sendMail({
-    from: '"IntelloMeter" <no-reply@intellometer.com>',
-    to,
+    from: `"IntelloMeter" <${process.env.EMAIL_USER}>`, // Sender
+    to, // Receiver email (can be Gmail, Yopmail, anything)
     subject: "Password Reset",
     html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
   });
 
-  console.log("Preview URL: " + nodemailer.getTestMessageUrl(info));
+  console.log("✅ Email sent:", info.response);
 };

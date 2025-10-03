@@ -33,7 +33,7 @@ function generateJwt(user: { id: number; email: string; provider: string }) {
  */
 router.post(
   "/signup",
-  [
+  [ 
     body("email").isEmail().withMessage("Valid email required"),
     body("password")
       .isLength({ min: 8 })

@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(passport.initialize());
 
 // routes
-app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
 // health
 app.get("/health", (req, res) => res.json({ status: "ok" }));
