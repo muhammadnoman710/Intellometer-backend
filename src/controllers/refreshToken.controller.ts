@@ -1,15 +1,22 @@
 import { Request, Response } from "express";
 import prisma from "../config/prisma";
-import { generateAccessToken, generateRefreshToken } from "../utils/token";
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt";
 
 export const refreshTokenHandler = async (req: Request, res: Response) => {
   try {
-    const { refreshToken: incomingToken } = req.body;
+    
+    // 🔍 Debugging line — this helps you confirm body is parsed
+    console.log("Incoming refresh request body:", req.body);
+
+    // ✅ Safe destructuring
+    const incomingToken = req.body?.refreshToken;
 
     if (!incomingToken) {
+      console.warn("⚠️ Refresh token missing in request body");
       return res.status(400).json({ message: "Refresh token required" });
     }
 
+    // 🔐 Check if token exists in DB and belongs to a valid user
     const storedToken = await prisma.refreshToken.findUnique({
       where: { token: incomingToken },
       include: { user: true },
@@ -19,17 +26,33 @@ export const refreshTokenHandler = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid refresh token" });
     }
 
-    // Generate new tokens
-    const newAccessToken = generateAccessToken({
-      userId: String(storedToken.user.id),
-    });
-    const newRefreshToken = generateRefreshToken();
+    // 🧾 Verify token signature
+    let payload: any;
+    try {
+      payload = verifyRefreshToken(incomingToken) as { userId?: string };
+    } catch (e) {
+      console.warn("Invalid or expired refresh token");
+      return res.status(401).json({ message: "Invalid or expired refresh token" });
+    }
 
-    // Rotate: replace old refresh token
+    const expectedUserId = String(storedToken.user.id);
+    if (!payload?.userId || payload.userId !== expectedUserId) {
+      return res.status(401).json({ message: "Refresh token does not match user" });
+    }
+
+    // ♻️ Rotate tokens
+    const newAccessToken = signAccessToken(expectedUserId);
+    const newRefreshToken = signRefreshToken(expectedUserId);
+
     await prisma.refreshToken.update({
       where: { token: incomingToken },
-      data: { token: newRefreshToken },
+      data: {
+        token: newRefreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
     });
+
+    console.log("✅ Refresh token rotated successfully for user:", expectedUserId);
 
     return res.json({
       accessToken: newAccessToken,

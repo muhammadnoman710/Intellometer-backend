@@ -43,6 +43,9 @@ router.post(
 );
 
 // Verify OTP
+//router.post("/send-otp", verifyOtp);
+
+// Verify OTP
 router.post("/verify-otp", verifyOtp);
 
 // Login

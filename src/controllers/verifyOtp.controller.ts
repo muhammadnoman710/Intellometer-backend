@@ -30,7 +30,11 @@ export const verifyOtp = async (req: Request, res: Response) => {
     // Delete OTP after successful verification
     await redis.del(`otp:${email}`);
 
-    return res.status(200).json({ message: "Email verified successfully" });
+    return res.status(200).json({
+      message: "Email verified successfully",
+      verified: true,
+      needsVerification: false,
+    });
   } catch (error: any) {
     console.error("verifyOtp error:", error);
     return res.status(500).json({ message: "Internal server error" });

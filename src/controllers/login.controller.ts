@@ -18,7 +18,13 @@ export const login = async (req: Request, res: Response) => {
     }
 
     if (!user.isVerified) {
-      return res.status(403).json({ message: "Please verify your email first" });
+      // Unverified users should be guided to OTP verification
+      return res.status(202).json({
+        message: "Verification required. Please verify your email first",
+        needsVerification: true,
+        verificationRequired: true,
+        user: { id: user.id, email: user.email, isVerified: false },
+      });
     }
 
     const isMatch = await bcrypt.compare(password, user.password || "");
