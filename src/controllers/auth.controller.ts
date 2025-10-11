@@ -3,7 +3,7 @@ import { validationResult } from "express-validator";
 import { registerUser } from "../services/auth.service";
 import { signAccessToken, signRefreshToken } from "../utils/jwt";
 import prisma from "../config/prisma";
-import { generateOtpDigits } from "../utils/otp"; // helper to generate 6-digit OTP
+import { generateOtpDigits, storeOtpForEmail } from "../utils/otp"; // helper to generate & store 6-digit OTP
 // import { sendVerificationEmail } from "../utils/email"; // optional if email sending is set up
 
 export async function signupHandler(req: Request, res: Response) {
@@ -23,46 +23,37 @@ export async function signupHandler(req: Request, res: Response) {
     if (existingUser) {
       if (!existingUser.isVerified) {
         // User exists but has not verified yet → resend OTP
-        const newOtp = generateOtpDigits();
-        const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
+        const newOtp = generateOtpDigits(6);
 
+        // ensure isVerified remains false (no DB-stored OTP)
         await prisma.user.update({
           where: { email: lowerEmail },
-          data: {
-            // otp: newOtp,
-            // otpExpiresAt: otpExpiry,
-            isVerified: false,
-          },
+          data: { isVerified: false },
         });
 
+        // store OTP in Redis with TTL and log for debugging
+        await storeOtpForEmail(lowerEmail, newOtp);
         console.log(`Resent OTP for ${lowerEmail}: ${newOtp} (valid for 5 minutes)`);
 
         // Optional: send verification email
         // await sendVerificationEmail(lowerEmail, newOtp);
 
-        return res.status(200).json({
-          message: "User already registered but not verified. OTP resent to email.",
-          needsVerification: true,
-          verificationRequired: true,
-          user: { id: existingUser.id, email: existingUser.email, isVerified: false },
-        });
+        return res.status(200).json({ message: "OTP sent successfully", email: lowerEmail });
       }
 
       // User exists and verified → stop signup
       return res.status(409).json({ message: "User already exists" });
     }
 
-    // Register a new user
-    const { user, otp } = await registerUser(lowerEmail, password);
+    // Register a new user (no OTP stored in DB)
+    const { user } = await registerUser(lowerEmail, password);
 
+    // Generate and store OTP in Redis, do not return OTP in body
+    const otp = generateOtpDigits(6);
+    await storeOtpForEmail(lowerEmail, otp);
     console.log(`OTP for ${lowerEmail}: ${otp} (valid for 5 minutes)`);
 
-    return res.status(201).json({
-      message: "User created. OTP sent to email (check server logs in dev).",
-      needsVerification: true,
-      verificationRequired: true,
-      user: { id: user.id, email: user.email, isVerified: user.isVerified },
-    });
+    return res.status(201).json({ message: "OTP sent successfully", email: lowerEmail });
   } catch (err: any) {
     console.error("signup error:", err);
     return res.status(500).json({ message: "Internal server error" });

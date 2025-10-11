@@ -1,11 +1,13 @@
 import prisma from "../config/db";
 import { hashPassword } from "../utils/hash";
-import { generateOtpDigits, storeOtpForEmail } from "../utils/otp";
 import { AuthProvider } from "@prisma/client";
 
 export async function registerUser(email: string, password: string) {
+  // normalize email to lowercase
+  const lowerEmail = email.toLowerCase();
+
   // check existing
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const existing = await prisma.user.findUnique({ where: { email: lowerEmail } });
   if (existing) {
     throw new Error("USER_ALREADY_EXISTS");
   }
@@ -14,9 +16,9 @@ export async function registerUser(email: string, password: string) {
 
   const user = await prisma.user.create({
     data: {
-      email,
+      email: lowerEmail,
       password: hashed,
-      provider: AuthProvider.GOOGLE,
+      provider: AuthProvider.EMAIL,
       isVerified: false,
     },
     select: {
@@ -26,10 +28,6 @@ export async function registerUser(email: string, password: string) {
   },
   });
 
-  // generate OTP and store in Redis
-  const otp = generateOtpDigits(6);
-  await storeOtpForEmail(email, otp);
-
-  // TODO: send OTP via email or SMS here. For now we return it/log it to server.
-  return { user, otp };
+  // Return just the user; OTP is handled at controller level in Redis
+  return { user };
 }
