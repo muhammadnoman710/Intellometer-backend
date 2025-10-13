@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 
 export const sendResetEmail = async (to: string, token: string) => {
-  // ✅ Use Gmail SMTP instead of Ethereal
+
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -10,7 +10,7 @@ export const sendResetEmail = async (to: string, token: string) => {
     },
   });
 
-  const resetLink = `http://localhost:5000/auth/reset-password/${token}`;
+  const resetLink = `${process.env.CLIENT_URL}/auth/reset-password?token=${token}`;
 
   const info = await transporter.sendMail({
     from: `"IntelloMeter" <${process.env.EMAIL_USER}>`, // Sender
