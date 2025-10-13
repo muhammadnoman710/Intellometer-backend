@@ -3,7 +3,13 @@ import { validationResult } from "express-validator";
 import { registerUser } from "../services/auth.service";
 import { signAccessToken, signRefreshToken } from "../utils/jwt";
 import prisma from "../config/prisma";
-import { generateOtpDigits, storeOtpForEmail } from "../utils/otp"; // helper to generate & store 6-digit OTP
+import {
+  generateOtpDigits,
+  storeOtpForEmail,
+  isResendOnCooldown,
+  setResendCooldown,
+  OTP_RESEND_COOLDOWN_SECONDS,
+} from "../utils/otp"; // helper to generate & store 6-digit OTP and cooldown
 // import { sendVerificationEmail } from "../utils/email"; // optional if email sending is set up
 
 export async function signupHandler(req: Request, res: Response) {
@@ -22,6 +28,14 @@ export async function signupHandler(req: Request, res: Response) {
 
     if (existingUser) {
       if (!existingUser.isVerified) {
+        // Check cooldown before resending
+        const { active, ttl } = await isResendOnCooldown(lowerEmail);
+        if (active) {
+          return res.status(429).json({
+            message: "Please wait before resending OTP.",
+            retryAfter: ttl,
+          });
+        }
         // User exists but has not verified yet → resend OTP
         const newOtp = generateOtpDigits(6);
 
@@ -33,12 +47,17 @@ export async function signupHandler(req: Request, res: Response) {
 
         // store OTP in Redis with TTL and log for debugging
         await storeOtpForEmail(lowerEmail, newOtp);
+        await setResendCooldown(lowerEmail);
         console.log(`Resent OTP for ${lowerEmail}: ${newOtp} (valid for 5 minutes)`);
 
         // Optional: send verification email
         // await sendVerificationEmail(lowerEmail, newOtp);
 
-        return res.status(200).json({ message: "OTP sent successfully", email: lowerEmail });
+        return res.status(200).json({
+          message: "OTP sent successfully",
+          email: lowerEmail,
+          cooldown: OTP_RESEND_COOLDOWN_SECONDS,
+        });
       }
 
       // User exists and verified → stop signup
@@ -51,9 +70,14 @@ export async function signupHandler(req: Request, res: Response) {
     // Generate and store OTP in Redis, do not return OTP in body
     const otp = generateOtpDigits(6);
     await storeOtpForEmail(lowerEmail, otp);
+    await setResendCooldown(lowerEmail);
     console.log(`OTP for ${lowerEmail}: ${otp} (valid for 5 minutes)`);
 
-    return res.status(201).json({ message: "OTP sent successfully", email: lowerEmail });
+    return res.status(201).json({
+      message: "OTP sent successfully",
+      email: lowerEmail,
+      cooldown: OTP_RESEND_COOLDOWN_SECONDS,
+    });
   } catch (err: any) {
     console.error("signup error:", err);
     return res.status(500).json({ message: "Internal server error" });
