@@ -6,6 +6,19 @@
     "rootDir": "src",
     "outDir": "dist",
     "esModuleInterop": true,
+
+    // 👇 ADDED: Make TypeScript aware of global type declarations (like express.d.ts)
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+
+    // 👇 ADDED: Explicitly include all source files
+    "strict": true,
+    "jsx": "react-jsx",
+    "verbatimModuleSyntax": false,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+
     // File Layout
     // "rootDir": "./src",
     // "outDir": "./dist",
@@ -15,10 +28,6 @@
     // "module": "nodenext",
     // "target": "esnext",
     "types": [],
-    // For nodejs:
-    // "lib": ["esnext"],
-    // "types": ["node"],
-    // and npm install -D @types/node
 
     // Other Outputs
     "sourceMap": true,
@@ -27,7 +36,7 @@
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": true
 
     // Style Options
     // "noImplicitReturns": true,
@@ -36,14 +45,7 @@
     // "noUnusedParameters": true,
     // "noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
-
-    // Recommended Options
-    "strict": true,
-    "jsx": "react-jsx",
-    "verbatimModuleSyntax": false,
-    "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force",
-    "skipLibCheck": true,
-  }
+  },
+  // 👇 ADDED: Ensure the types folder is picked up
+  "include": ["src"]
 }

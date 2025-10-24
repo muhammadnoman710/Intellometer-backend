@@ -1,9 +1,9 @@
 // ----------------------------
-// Prisma Schema
+// Prisma Schema (final - zone based)
 // ----------------------------
 
 datasource db {
-  provider = "postgresql" // or "mysql" / "sqlite" depending on your setup
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -12,18 +12,29 @@ generator client {
 }
 
 // ----------------------------
+// Enums
+// ----------------------------
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+}
+
+// ----------------------------
 // Models
 // ----------------------------
 
 model User {
-  id            Int            @id @default(autoincrement())
-  email         String         @unique
-  password      String?        // ✅ nullable for Google users
-  provider      AuthProvider   @default(EMAIL)
-  isVerified    Boolean        @default(false)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id         Int          @id @default(autoincrement())
+  email      String       @unique
+  password   String? // nullable for Google users
+  provider   AuthProvider @default(EMAIL)
+  isVerified Boolean      @default(false)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
   refreshTokens RefreshToken[]
+  zones         Zone[] // ✅ each user can have multiple zones
 }
 
 model RefreshToken {
@@ -37,10 +48,44 @@ model RefreshToken {
 }
 
 // ----------------------------
-// Enums
+// Zone + Diffuser Hierarchy
 // ----------------------------
 
-enum AuthProvider {
-  EMAIL
-  GOOGLE
+model Zone {
+  id        String   @id @default(uuid())
+  name      String // e.g. "Robt", "Kitchen", "TRO"
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  diffusers Diffuser[]
+}
+
+model Diffuser {
+  id        String   @id @default(uuid())
+  name      String // Auto: "Diffuser 1–15"
+  label     String? // Optional custom label (e.g. "Room A", "AHU-01")
+  zoneId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  zone     Zone      @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  readings Reading[] // Will hold CFM / balancing data later
+}
+
+// ----------------------------
+// Reading Model (for future reports)
+// ----------------------------
+
+model Reading {
+  id           String   @id @default(uuid())
+  diffuserId   String
+  designCFM    Float?
+  actualCFM    Float?
+  terminalType String?
+  terminalSize String?
+  createdAt    DateTime @default(now())
+
+  diffuser Diffuser @relation(fields: [diffuserId], references: [id], onDelete: Cascade)
 }
