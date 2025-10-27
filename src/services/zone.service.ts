@@ -1,45 +1,36 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import prisma from '../config/prisma';
 
 export const ZoneService = {
-  async create(userId: number, name: string) {
-    const existing = await prisma.zone.findFirst({
-      where: { userId, name },
-    });
-    if (existing) throw new Error("Zone with this name already exists.");
-
-    return prisma.zone.create({
-      data: {
-        userId,
-        name,
-      },
-    });
+  async create(projectId: string, userId: number, name: string) {
+    // ensure project belongs to user
+    const project = await prisma.project.findFirst({ where: { id: projectId, userId } });
+    if (!project) throw new Error("Project not found or unauthorized");
+    return prisma.zone.create({ data: { projectId, name } });
   },
 
-  async getAll(userId: number) {
-    return prisma.zone.findMany({
-      where: { userId },
-      include: { diffusers: true },
-      orderBy: { createdAt: "asc" },
-    });
+  async list(projectId: string, userId: number) {
+    const project = await prisma.project.findFirst({ where: { id: projectId, userId } });
+    if (!project) throw new Error("Project not found or unauthorized");
+    return prisma.zone.findMany({ where: { projectId }, include: { diffusers: true } });
   },
 
-  async getById(id: string, userId: number) {
-    const zone = await prisma.zone.findFirst({
-      where: { id, userId },
-      include: { diffusers: true },
-    });
-    if (!zone) throw new Error("Zone not found or not yours.");
+  async getById(zoneId: string, userId: number) {
+    const zone = await prisma.zone.findUnique({ where: { id: zoneId }, include: { project: true, diffusers: true } });
+    if (!zone) throw new Error("Zone not found");
+    if (zone.project.userId !== userId) throw new Error("Unauthorized");
     return zone;
   },
 
-  async delete(id: string, userId: number) {
-    const zone = await prisma.zone.findFirst({
-      where: { id, userId },
-    });
-    if (!zone) throw new Error("Zone not found or not yours.");
+  async update(zoneId: string, userId: number, data: any) {
+    // ensure ownership
+    const zone = await prisma.zone.findUnique({ where: { id: zoneId }, include: { project: true } });
+    if (!zone || zone.project.userId !== userId) throw new Error("Unauthorized or zone not found");
+    return prisma.zone.update({ where: { id: zoneId }, data });
+  },
 
-    await prisma.zone.delete({ where: { id } });
-    return { message: "Zone deleted successfully" };
+  async delete(zoneId: string, userId: number) {
+    const zone = await prisma.zone.findUnique({ where: { id: zoneId }, include: { project: true } });
+    if (!zone || zone.project.userId !== userId) throw new Error("Unauthorized or zone not found");
+    return prisma.zone.delete({ where: { id: zoneId } });
   },
 };

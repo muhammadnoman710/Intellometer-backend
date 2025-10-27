@@ -1,7 +1,3 @@
-// ----------------------------
-// Prisma Schema (final - zone based)
-// ----------------------------
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -11,30 +7,23 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// ----------------------------
-// Enums
-// ----------------------------
-
 enum AuthProvider {
   EMAIL
   GOOGLE
 }
 
-// ----------------------------
-// Models
-// ----------------------------
-
 model User {
   id         Int          @id @default(autoincrement())
   email      String       @unique
-  password   String? // nullable for Google users
+  password   String?
   provider   AuthProvider @default(EMAIL)
   isVerified Boolean      @default(false)
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
 
   refreshTokens RefreshToken[]
-  zones         Zone[] // ✅ each user can have multiple zones
+  projects      Project[]
+  Session       Session[]
 }
 
 model RefreshToken {
@@ -47,45 +36,112 @@ model RefreshToken {
   revoked   Boolean  @default(false)
 }
 
-// ----------------------------
-// Zone + Diffuser Hierarchy
-// ----------------------------
+model Project {
+  id        String   @id @default(uuid())
+  userId    Int
+  name      String
+  ahuInfo   Json? // store AHU fields: model, sheetNo, location, testDate, etc.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  zones    Zone[]
+  sessions Session[] // convenience for queries (session may also be linked to zone)
+}
 
 model Zone {
   id        String   @id @default(uuid())
-  name      String // e.g. "Robt", "Kitchen", "TRO"
-  userId    Int
+  projectId String
+  name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   diffusers Diffuser[]
+  sessions  Session[]
 }
 
 model Diffuser {
-  id        String   @id @default(uuid())
-  name      String // Auto: "Diffuser 1–15"
-  label     String? // Optional custom label (e.g. "Room A", "AHU-01")
-  zoneId    String
+  id               String   @id @default(uuid())
+  zoneId           String
+  systemName       String // "Diffuser 1", "Diffuser 2" — assigned automatically
+  label            String?
+  sizeFeet         Float? // normalized
+  size_input       String?
+  size_unit        String?
+  deviceIdentifier String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  zone     Zone           @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  readings Reading[]
+  moves    DiffuserMove[]
+}
+
+model Session {
+  id                String    @id @default(uuid())
+  projectId         String
+  zoneId            String
+  userId            Int
+  sessionName       String?
+  startedAt         DateTime  @default(now())
+  finishedAt        DateTime?
+  AHUInfo           Json? // snapshot of AHU for this session
+  motorDirectionDeg Float?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  zone     Zone      @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id])
+  readings Reading[]
+}
+
+model Reading {
+  id          String  @id @default(uuid())
+  sessionId   String
+  diffuserId  String
+  projectName String?
+  areaName    String?
+
+  // raw + canonical numeric fields
+  requiredCFM_raw  String?
+  requiredCFM      Float?
+  requiredCFM_unit String?
+
+  actualCFM_raw  String?
+  actualCFM      Float?
+  actualCFM_unit String?
+
+  requiredTemp_raw  String?
+  requiredTemp      Float?
+  requiredTemp_unit String?
+
+  actualTemp_raw  String?
+  actualTemp      Float?
+  actualTemp_unit String?
+
+  grillTemp_raw  String?
+  grillTemp      Float?
+  grillTemp_unit String?
+
+  voltage   Float?
+  amperes   Float?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  zone     Zone      @relation(fields: [zoneId], references: [id], onDelete: Cascade)
-  readings Reading[] // Will hold CFM / balancing data later
+  session  Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  diffuser Diffuser @relation(fields: [diffuserId], references: [id], onDelete: Cascade)
 }
 
-// ----------------------------
-// Reading Model (for future reports)
-// ----------------------------
-
-model Reading {
-  id           String   @id @default(uuid())
-  diffuserId   String
-  designCFM    Float?
-  actualCFM    Float?
-  terminalType String?
-  terminalSize String?
-  createdAt    DateTime @default(now())
-
-  diffuser Diffuser @relation(fields: [diffuserId], references: [id], onDelete: Cascade)
+model DiffuserMove {
+  id         String   @id @default(uuid())
+  diffuserId String
+  fromZoneId String?
+  toZoneId   String
+  movedBy    Int
+  movedAt    DateTime @default(now())
+  note       String?
+  Diffuser   Diffuser @relation(fields: [diffuserId], references: [id])
 }

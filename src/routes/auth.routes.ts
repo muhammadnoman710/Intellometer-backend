@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { body } from "express-validator";
+import * as expressValidator from "express-validator";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 import { signupHandler } from "../controllers/auth.controller";
@@ -34,8 +34,8 @@ function generateJwt(user: { id: number; email: string; provider: string }) {
 router.post(
   "/signup",
   [ 
-    body("email").isEmail().withMessage("Valid email required"),
-    body("password")
+    expressValidator.body("email").isEmail().withMessage("Valid email required"),
+    expressValidator.body("password")
       .isLength({ min: 8 })
       .withMessage("Password must be at least 8 characters"),
   ],

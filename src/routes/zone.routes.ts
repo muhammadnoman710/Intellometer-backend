@@ -1,13 +1,14 @@
-// src/routes/zone.routes.ts
 import { Router } from "express";
 import { ZoneController } from "../controllers/zone.controller";
 import { requireAuth } from "../middlewares/auth.middleware";
 
 const router = Router();
+router.use(requireAuth);
 
-router.post("/", requireAuth, ZoneController.create);
-router.get("/", requireAuth, ZoneController.getAll);
-router.get("/:id", requireAuth, ZoneController.getById);
-router.delete("/:id", requireAuth, ZoneController.delete);
+router.post("/projects/:projectId/zones", ZoneController.create);
+router.get("/projects/:projectId/zones", ZoneController.list);
+router.get("/zones/:zoneId", ZoneController.getById);
+router.put("/zones/:zoneId", ZoneController.update);
+router.delete("/zones/:zoneId", ZoneController.delete);
 
 export default router;

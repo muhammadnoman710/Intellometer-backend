@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { validationResult } from "express-validator";
+import * as expressValidator from "express-validator";
 import { registerUser } from "../services/auth.service";
 import { signAccessToken, signRefreshToken } from "../utils/jwt";
 import prisma from "../config/prisma";
@@ -14,7 +14,7 @@ import {
 
 export async function signupHandler(req: Request, res: Response) {
   // validation results from route validators
-  const errors = validationResult(req);
+  const errors = expressValidator.validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }

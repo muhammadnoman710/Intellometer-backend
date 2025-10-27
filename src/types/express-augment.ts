@@ -1,7 +1,3 @@
-// src/types/express.d.ts
-
-export {};
-
 declare global {
   namespace Express {
     interface User {
@@ -9,9 +5,7 @@ declare global {
       email: string;
       provider: "EMAIL" | "GOOGLE";
     }
-
-    interface Request {
-      user?: User;
-    }
   }
 }
+
+export {};

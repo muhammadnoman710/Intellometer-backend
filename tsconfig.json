@@ -1,16 +1,17 @@
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "CommonJS",
+    "target": "es2020",
+    "module": "commonjs",
     "rootDir": "src",
     "outDir": "dist",
+    "allowSyntheticDefaultImports": true, 
     "esModuleInterop": true,
-
-    // 👇 ADDED: Make TypeScript aware of global type declarations (like express.d.ts)
+    "baseUrl": ".",
+    "paths": {
+      "@prisma/client": ["src/types/prisma-client-shim.d.ts"],
+      "express-validator": ["node_modules/express-validator/lib/index.d.ts"]
+    },
     "typeRoots": ["./node_modules/@types", "./src/types"],
-
-    // 👇 ADDED: Explicitly include all source files
     "strict": true,
     "jsx": "react-jsx",
     "verbatimModuleSyntax": false,
@@ -18,34 +19,11 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-
-    // File Layout
-    // "rootDir": "./src",
-    // "outDir": "./dist",
-
-    // Environment Settings
-    // See also https://aka.ms/tsconfig/module
-    // "module": "nodenext",
-    // "target": "esnext",
-    "types": [],
-
-    // Other Outputs
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-
-    // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true
-
-    // Style Options
-    // "noImplicitReturns": true,
-    // "noImplicitOverride": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    // "noFallthroughCasesInSwitch": true,
-    // "noPropertyAccessFromIndexSignature": true,
   },
-  // 👇 ADDED: Ensure the types folder is picked up
   "include": ["src"]
 }
