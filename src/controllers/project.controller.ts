@@ -6,7 +6,12 @@ export const ProjectController = {
     try {
       const userId = req.user!.id;
       const { name, ahuInfo } = req.body;
-      const project = await ProjectService.create(userId, name, ahuInfo);
+      // Validate project name
+      if (typeof name !== "string" || !name.trim()) {
+        return res.status(400).json({ error: "Project name is required" });
+      }
+      const projectName = name.trim();
+      const project = await ProjectService.create(userId, projectName, ahuInfo ?? undefined);
       res.status(201).json(project);
     } catch (err: any) {
       res.status(400).json({ error: err.message });

@@ -5,7 +5,8 @@ const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refreshsecret";
 
 // Access token (short-lived)
 export const signAccessToken = (userId: string) => {
-  return jwt.sign({ userId }, ACCESS_SECRET, { expiresIn: "1m" });
+  console.log("ACCESS_SECRET USED FOR SIGNING:", process.env.JWT_ACCESS_SECRET || "supersecret");
+  return jwt.sign({ userId }, ACCESS_SECRET, { expiresIn: "7d" });
 };
 
 // Refresh token (long-lived)
