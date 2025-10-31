@@ -5,27 +5,37 @@ export const DiffuserController = {
   async create(req: Request, res: Response) {
     try {
       const userId = req.user!.id;
-      const { label, size_input, size_unit, deviceIdentifier } = req.body;
-      if (!req.params.zoneId) {
+      const { zoneId, label, size_input, size_unit, deviceIdentifier } = req.body;
+      if (!zoneId || typeof zoneId !== "string") {
         return res.status(400).json({ error: "zoneId is required" });
       }
-      const diffuser = await DiffuserService.create(req.params.zoneId, userId, label, size_input, size_unit, deviceIdentifier);
+      const diffuser = await DiffuserService.create(zoneId, userId, label, size_input, size_unit, deviceIdentifier);
       res.status(201).json(diffuser);
     } catch (err: any) {
-      res.status(400).json({ error: err.message });
+      console.error("Diffuser create error:", err);
+      if (err.message.includes("unauthorized") || err.message.includes("not found")) {
+        return res.status(404).json({ error: err.message });
+      }
+      res.status(500).json({ error: "Failed to create diffuser" });
     }
   },
 
   async list(req: Request, res: Response) {
     try {
       const userId = req.user!.id;
-      if (!req.params.zoneId) {
-        return res.status(400).json({ error: "zoneId is required" });
+      const { zoneId } = req.query as { zoneId?: string };
+      if (zoneId) {
+        const diffusers = await DiffuserService.list(zoneId, userId);
+        return res.json(diffusers);
       }
-      const diffusers = await DiffuserService.list(req.params.zoneId, userId);
+      // List all diffusers owned by the user when no zoneId is provided
+      const all = await DiffuserService.listAllForUser(userId);
+      const ordered = all.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      const diffusers = ordered;
       res.json(diffusers);
     } catch (err: any) {
-      res.status(400).json({ error: err.message });
+      console.error("Diffuser list error:", err);
+      res.status(500).json({ error: "Failed to fetch diffusers" });
     }
   },
 

@@ -33,7 +33,7 @@ app.use(morgan("dev"));
 // ----------------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
-app.use("/api/zones", zoneRoutes);
+app.use("/api", zoneRoutes);
 app.use("/api/diffusers", diffuserRoutes);
 app.use("/api/readings", readingRoutes);
 app.use("/api/reports", reportRoutes);

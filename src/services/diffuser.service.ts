@@ -44,6 +44,14 @@ export const DiffuserService = {
     return prisma.diffuser.findMany({ where: { zoneId }, orderBy: { createdAt: "asc" } });
   },
 
+  async listAllForUser(userId: number) {
+    // find all zones for projects owned by user, then fetch diffusers in those zones
+    const zones = await prisma.zone.findMany({ where: { project: { userId } }, select: { id: true } });
+    const zoneIds = zones.map((z: { id: string }) => z.id);
+    if (zoneIds.length === 0) return [];
+    return prisma.diffuser.findMany({ where: { zoneId: { in: zoneIds } }, orderBy: { createdAt: "asc" } });
+  },
+
   async getById(id: string, userId: number) {
     const d = await prisma.diffuser.findUnique({ where: { id }, include: { zone: { include: { project: true } } } });
     if (!d) throw new Error("Not found");

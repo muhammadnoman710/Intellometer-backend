@@ -17,14 +17,18 @@ export const ProjectService = {
 
   async getById(userId: number, id: string) {
     return prisma.project.findFirst({
-      where: { id, userId },
+      where: 
+      { 
+        id, 
+        userId 
+      },
       include: { zones: { include: { diffusers: true } }, sessions: true },
     });
   },
 
   async update(userId: number, id: string, data: any) {
-    return prisma.project.updateMany({          
-      where: { id, userId },
+    return prisma.project.update({
+      where: { id },
       data,
     });
   },

@@ -5,11 +5,22 @@ import { requireAuth } from "../middlewares/auth.middleware";
 const router = Router();
 router.use(requireAuth);
 
-router.post("/zones/:zoneId/diffusers", DiffuserController.create);
-router.get("/zones/:zoneId/diffusers", DiffuserController.list);
-router.get("/diffusers/:diffuserId", DiffuserController.get);
-router.put("/diffusers/:diffuserId", DiffuserController.update);
-router.post("/diffusers/:diffuserId/move", DiffuserController.move);
-router.delete("/diffusers/:diffuserId", DiffuserController.delete);
+// Create diffuser (expects zoneId in request body)
+router.post("/", DiffuserController.create);
+
+// List diffusers (optionally filter by ?zoneId=)
+router.get("/", DiffuserController.list);
+
+// Get diffuser details
+router.get("/:diffuserId", DiffuserController.get);
+
+// Update diffuser
+router.put("/:diffuserId", DiffuserController.update);
+
+// Move diffuser to another zone
+router.post("/:diffuserId/move", DiffuserController.move);
+
+// Delete diffuser
+router.delete("/:diffuserId", DiffuserController.delete);
 
 export default router;
