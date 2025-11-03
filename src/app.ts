@@ -31,12 +31,19 @@ app.use(morgan("dev"));
 // ----------------------------
 // Routes
 // ----------------------------
+console.log("Mounting routers...");
 app.use("/api/auth", authRoutes);
+console.log("Mounted auth routes at /api/auth");
 app.use("/api/projects", projectRoutes);
+console.log("Mounted project routes at /api/projects");
 app.use("/api", zoneRoutes);
+console.log("Mounted zone routes at /api");
 app.use("/api/diffusers", diffuserRoutes);
+console.log("Mounted diffuser routes at /api/diffusers");
 app.use("/api/readings", readingRoutes);
+console.log("Mounted reading routes at /api/readings");
 app.use("/api/reports", reportRoutes);
+console.log("Mounted report routes at /api/reports");
 
 // ----------------------------
 // Health and root routes
@@ -51,6 +58,7 @@ app.get("/", (req, res) => {
 // 404 Fallback
 // ----------------------------
 app.use((req, res) => {
+  console.log("404 reached for:", req.method, req.originalUrl);
   res.status(404).json({
     success: false,
     message: "Route not found",

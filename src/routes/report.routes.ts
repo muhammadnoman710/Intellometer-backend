@@ -1,12 +1,18 @@
 import { Router } from "express";
 import { requireAuth } from "../middlewares/auth.middleware";
-// controllers/report.controller.ts would implement report generation
+import { ReportController } from "../controllers/report.controller";
 
 const router = Router();
+
+// ✅ Apply auth middleware to all routes
 router.use(requireAuth);
 
-// Example endpoints (implement later)
-router.post("/reports/sessions/:sessionId/docx", (req, res) => res.status(501).send({ error: "Not implemented" }));
-router.post("/reports/sessions/:sessionId/pdf", (req, res) => res.status(501).send({ error: "Not implemented" }));
+// ✅ Project-level reports
+router.post("/project/:projectId/preview", ReportController.previewProjectReport);
+router.post("/project/:projectId/doc", ReportController.generateProjectDocReport);
+
+// ✅ Session-level reports
+router.post("/sessions/:sessionId/pdf", ReportController.generateSessionPdfReport);
+router.post("/sessions/:sessionId/docx", ReportController.generateSessionDocxReport);
 
 export default router;
