@@ -8,8 +8,8 @@ const router = Router();
 router.use(requireAuth);
 
 // ✅ Project-level reports
-router.post("/project/:projectId/preview", ReportController.previewProjectReport);
-router.post("/project/:projectId/doc", ReportController.generateProjectDocReport);
+router.get("/project/:projectId/preview", ReportController.previewProjectReport);
+router.get("/project/:projectId/doc", ReportController.generateProjectDocReport);
 
 // ✅ Session-level reports
 router.post("/sessions/:sessionId/pdf", ReportController.generateSessionPdfReport);

@@ -54,6 +54,11 @@ app.get("/", (req, res) => {
   res.send("🚀 IntelloMeter Backend is running!");
 });
 
+app.use((req, res, next) => {
+  console.log("🧭 Incoming:", req.method, req.originalUrl);
+  next();
+});
+
 // ----------------------------
 // 404 Fallback
 // ----------------------------
